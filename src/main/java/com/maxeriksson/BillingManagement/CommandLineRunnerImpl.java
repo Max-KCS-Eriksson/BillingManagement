@@ -26,9 +26,18 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         while (isRunning) {
             printHumanReadableMenuChoiceIndexes(menuChoices);
             switch (pickListIndex(menuChoices)) {
-                case 1 -> handleBilling();
-                case 2 -> handleCustomers();
-                case 3 -> handleServices();
+                case 1 -> {
+                    System.out.println();
+                    handleBilling();
+                }
+                case 2 -> {
+                    System.out.println();
+                    handleCustomers();
+                }
+                case 3 -> {
+                    System.out.println();
+                    handleServices();
+                }
                 case 4 -> isRunning = false;
             }
         }
