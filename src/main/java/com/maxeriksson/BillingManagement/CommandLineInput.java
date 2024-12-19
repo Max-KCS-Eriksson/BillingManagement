@@ -12,8 +12,16 @@ public class CommandLineInput {
     }
 
     public String inputString(String prompt) {
-        System.out.print(prompt + " > ");
-        return SCANNER.nextLine().trim();
+        String input = "";
+        while (input.isBlank()) {
+            System.out.print(prompt + " > ");
+
+            input = SCANNER.nextLine().trim();
+            if (input.isEmpty()) {
+                System.out.println("Invalid input. Try again.");
+            }
+        }
+        return input;
     }
 
     public int inputInt(String prompt) {
