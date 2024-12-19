@@ -1,16 +1,26 @@
 package com.maxeriksson.BillingManagement;
 
+import com.maxeriksson.BillingManagement.model.Customer;
+import com.maxeriksson.BillingManagement.model.SocialSecurityNumber;
+import com.maxeriksson.BillingManagement.repository.CustomerRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.format.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /** CommandLineRunnerImpl */
 @Component
 public class CommandLineRunnerImpl implements CommandLineRunner {
 
     private CommandLineInput in = new CommandLineInput();
+
+    @Autowired CustomerRepository customerRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -52,10 +62,95 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
 
     private void handleCustomers() {
         System.out.println("WARN: `handleCustomers()` NOT IMPLEMENTED"); // TODO: IMPLEMENT
+
+        boolean isHandlingCustomers = true;
+        String[] menuChoices = {
+            "Show all Customers in Registry",
+            "Add Customer to Registry",
+            "Update Customer in Registry",
+            "Delete Customer from Registry",
+            "Main Menu"
+        };
+        while (isHandlingCustomers) {
+            printHumanReadableMenuChoiceIndexes(menuChoices);
+            switch (pickListIndex(menuChoices)) {
+                case 1 -> { // TODO: Show all Customers in Registry
+                    System.out.println("WARN: NOT IMPLEMENTED"); // TODO: IMPLEMENT
+                }
+                case 2 -> {
+                    Customer customer = createCustomer();
+                    customerRepository.save(customer);
+                }
+                case 3 -> { // TODO: Update Customer in Registry
+                    System.out.println("WARN: NOT IMPLEMENTED"); // TODO: IMPLEMENT
+                }
+                case 4 -> { // TODO: Delete Customer from Registry
+                    System.out.println("WARN: NOT IMPLEMENTED"); // TODO: IMPLEMENT
+                }
+                case 5 -> isHandlingCustomers = false;
+            }
+        }
     }
 
     private void handleServices() {
         System.out.println("WARN: `handleServices()` NOT IMPLEMENTED"); // TODO: IMPLEMENT
+    }
+
+    // Handle Customers
+
+    private Customer createCustomer() {
+        Optional<Customer> customer;
+        SocialSecurityNumber socialSecurityNumber = null;
+
+        boolean uniqueId = false;
+        while (!uniqueId) {
+            LocalDate dateOfBirth = LocalDate.MAX;
+            boolean isDateValid = false;
+            while (!isDateValid) {
+                String dateOfBirthInput =
+                        in.inputString("Birth date (yyyyMMdd)")
+                                .replace("-", "")
+                                .replace("/", "")
+                                .replace(" ", "");
+                try {
+                    dateOfBirth =
+                            LocalDate.parse(
+                                    dateOfBirthInput, DateTimeFormatter.ofPattern("yyyyMMdd"));
+                    isDateValid = true;
+                } catch (DateTimeParseException e) {
+                    System.out.println("Invalid input. Try again.");
+                }
+            }
+            int idLastFour = -1;
+            while (idLastFour < 0 || idLastFour > 9999) {
+                idLastFour = in.inputInt("ID last four");
+            }
+
+            socialSecurityNumber = new SocialSecurityNumber(dateOfBirth, idLastFour);
+            customer = customerRepository.findById(socialSecurityNumber);
+            uniqueId = !customer.isPresent();
+            if (!uniqueId) {
+                System.out.println(
+                        "ID number already exists in the registry:\n  "
+                                + customer
+                                + "\nThere might be a typo in the \"Birth date\", or \"ID last"
+                                + " four\"");
+                if (in.inputConfirmation("Update existing customer details?\n")) {
+                    break;
+                } else {
+                    return customer.get();
+                }
+            }
+        }
+
+        String firstName = toInitialUpperCase(in.inputString("First name"));
+        String lastName = toInitialUpperCase(in.inputString("Last name"));
+        String address = "";
+        for (String word : in.inputString("Address").split(" ")) {
+            address += toInitialUpperCase(word) + " ";
+        }
+
+        return new Customer(socialSecurityNumber, firstName, lastName, address);
     }
 
     // Helpers
