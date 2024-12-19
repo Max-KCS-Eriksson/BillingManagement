@@ -14,7 +14,7 @@ public class SocialSecurityNumber implements Serializable {
     private LocalDate dateOfBirth;
 
     @Column(name = "idLastFour")
-    private Integer idLastFour;
+    private String idLastFour;
 
     public SocialSecurityNumber() {} // Required by JPA
 
@@ -31,7 +31,7 @@ public class SocialSecurityNumber implements Serializable {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public Integer getIdLastFour() {
+    public String getIdLastFour() {
         return idLastFour;
     }
 
@@ -39,12 +39,12 @@ public class SocialSecurityNumber implements Serializable {
         if (idLastFour < 0 || idLastFour > 9999) {
             throw new IllegalArgumentException();
         }
-        this.idLastFour = idLastFour;
+        this.idLastFour = String.format("%04d", idLastFour);
     }
 
     @Override
     public String toString() {
-        return dateOfBirth.toString().replace("-", "") + String.format("-%04d", idLastFour);
+        return dateOfBirth.toString().replace("-", "") + "-" + idLastFour;
     }
 
     @Override
