@@ -1,5 +1,6 @@
 package com.maxeriksson.BillingManagement;
 
+import java.util.List;
 import java.util.Scanner;
 
 /** CommandLineInput */
@@ -9,6 +10,21 @@ public class CommandLineInput {
 
     public CommandLineInput() {
         SCANNER = new Scanner(System.in);
+    }
+
+    public boolean inputConfirmation(String prompt) {
+        prompt += " (y/n)";
+
+        List<String> validOptions = List.of("y", "yes", "n", "no");
+
+        String answer = "";
+        while (!validOptions.contains(answer)) {
+            answer = inputString(prompt);
+            if (!validOptions.contains(answer)) {
+                System.out.println("Invalid input - yes or no only. Try again.");
+            }
+        }
+        return answer.equals("y") || answer.equals("yes");
     }
 
     public String inputString(String prompt) {
