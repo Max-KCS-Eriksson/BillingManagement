@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.*;
 import java.util.Arrays;
 import java.util.List;
@@ -221,6 +222,26 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
             }
         }
         return date;
+    }
+
+    private LocalTime createLocalTime() {
+        LocalTime time = LocalTime.MAX;
+        boolean isDateValid = false;
+        while (!isDateValid) {
+            String dateOfBirthInput =
+                    in.inputString("Time - 24h format (hhmm)")
+                            .replace(":", "")
+                            .replace("-", "")
+                            .replace("/", "")
+                            .replace(" ", "");
+            try {
+                time = LocalTime.parse(dateOfBirthInput, DateTimeFormatter.ofPattern("HHmm"));
+                isDateValid = true;
+            } catch (DateTimeParseException e) {
+                System.out.println("Invalid input. Try again.");
+            }
+        }
+        return time;
     }
 
     private int createSocialSecurityNumberLastFourDigit() {
