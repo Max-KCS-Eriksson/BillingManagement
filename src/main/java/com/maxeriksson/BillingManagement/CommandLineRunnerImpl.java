@@ -62,8 +62,6 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
     }
 
     private void handleCustomers() {
-        System.out.println("WARN: `handleCustomers()` NOT IMPLEMENTED"); // TODO: IMPLEMENT
-
         boolean isHandlingCustomers = true;
         String[] menuChoices = {
             "Show all Customers in Registry",
@@ -74,8 +72,8 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         while (isHandlingCustomers) {
             printHumanReadableMenuChoiceIndexes(menuChoices);
             switch (pickListIndex(menuChoices)) {
-                case 1 -> { // TODO: Show all Customers in Registry
-                    System.out.println("WARN: NOT IMPLEMENTED"); // TODO: IMPLEMENT
+                case 1 -> {
+                    printAllCustomers();
                 }
                 case 2 -> {
                     Optional<Customer> customer = createCustomer();
@@ -83,9 +81,8 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
                         customerRepository.save(customer.get());
                     }
                 }
-                case 3 -> { // TODO: Delete Customer from Registry
-                    System.out.println("WARN: NOT IMPLEMENTED"); // TODO: IMPLEMENT
-                }
+                case 3 -> deleteCustomer();
+
                 case 4 -> isHandlingCustomers = false;
             }
         }
@@ -97,10 +94,17 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
 
     // Handle Customers
 
+    private void printAllCustomers() {
+        System.out.println("All Customers in Registry:");
+        for (Customer customer : customerRepository.findAll()) {
+            System.out.println("  " + customer);
+        }
+    }
+
     private Optional<Customer> createCustomer() {
         SocialSecurityNumber socialSecurityNumber;
         try {
-            socialSecurityNumber = createSocialSecurityNumber().get();
+            socialSecurityNumber = createUniqueSocialSecurityNumber().get();
         } catch (NoSuchElementException e) {
             return Optional.empty();
         }
@@ -115,41 +119,29 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         return Optional.of(new Customer(socialSecurityNumber, firstName, lastName, address));
     }
 
-    private Optional<SocialSecurityNumber> createSocialSecurityNumber() {
+    private void deleteCustomer() {
+        Optional<SocialSecurityNumber> socialSecurityNumber = createExistingSocialSecurityNumber();
+        Optional<Customer> customer = customerRepository.findById(socialSecurityNumber.get());
+        if (customer.isPresent()) {
+            System.out.println("Customer found in Registry:\n  " + customer.get());
+            if (in.inputConfirmation("Delete"))
+                customerRepository.deleteById(socialSecurityNumber.get());
+        }
+    }
+
+    private Optional<SocialSecurityNumber> createUniqueSocialSecurityNumber() {
         SocialSecurityNumber socialSecurityNumber = null;
 
-        boolean uniqueId = false;
-        while (!uniqueId) {
-            LocalDate dateOfBirth = LocalDate.MAX;
-            boolean isDateValid = false;
-            while (!isDateValid) {
-                String dateOfBirthInput =
-                        in.inputString("Birth date (yyyyMMdd)")
-                                .replace("-", "")
-                                .replace("/", "")
-                                .replace(" ", "");
-                try {
-                    dateOfBirth =
-                            LocalDate.parse(
-                                    dateOfBirthInput, DateTimeFormatter.ofPattern("yyyyMMdd"));
-                    isDateValid = true;
-                } catch (DateTimeParseException e) {
-                    System.out.println("Invalid input. Try again.");
-                }
-            }
-            int idLastFour = -1;
-            while (idLastFour < 0 || idLastFour > 9999) {
-                idLastFour = in.inputInt("ID last four");
-            }
-
+        boolean isUniqueId = false;
+        while (!isUniqueId) {
+            LocalDate dateOfBirth = createLocalDate();
+            int idLastFour = createSocialSecurityNumberLastFourDigit();
             socialSecurityNumber = new SocialSecurityNumber(dateOfBirth, idLastFour);
-            uniqueId = !customerRepository.existsById(socialSecurityNumber);
-            if (!uniqueId) {
+
+            isUniqueId = !customerRepository.existsById(socialSecurityNumber);
+            if (!isUniqueId) {
                 System.out.println(
-                        "ID number already exists in the registry:\n  "
-                                + socialSecurityNumber
-                                + "\nThere might be a typo in the \"Birth date\", or \"ID last"
-                                + " four\"");
+                        "ID number already exists in the registry:\n  " + socialSecurityNumber);
                 if (in.inputConfirmation("Update existing customer details?\n")) {
                     break;
                 } else {
@@ -158,6 +150,54 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
             }
         }
         return Optional.of(socialSecurityNumber);
+    }
+
+    private Optional<SocialSecurityNumber> createExistingSocialSecurityNumber() {
+        SocialSecurityNumber socialSecurityNumber = null;
+
+        boolean isUniqueId = false;
+        while (!isUniqueId) {
+            LocalDate dateOfBirth = createLocalDate();
+            int idLastFour = createSocialSecurityNumberLastFourDigit();
+            socialSecurityNumber = new SocialSecurityNumber(dateOfBirth, idLastFour);
+
+            isUniqueId = customerRepository.existsById(socialSecurityNumber);
+            if (!isUniqueId) {
+                System.out.println(
+                        "ID number doesn't exists in the registry:\n  " + socialSecurityNumber);
+                if (!in.inputConfirmation("Try again?\n")) {
+                    return Optional.empty();
+                }
+            }
+        }
+        return Optional.of(socialSecurityNumber);
+    }
+
+    private LocalDate createLocalDate() {
+        LocalDate date = LocalDate.MAX;
+        boolean isDateValid = false;
+        while (!isDateValid) {
+            String dateOfBirthInput =
+                    in.inputString("Birth date (yyyyMMdd)")
+                            .replace("-", "")
+                            .replace("/", "")
+                            .replace(" ", "");
+            try {
+                date = LocalDate.parse(dateOfBirthInput, DateTimeFormatter.ofPattern("yyyyMMdd"));
+                isDateValid = true;
+            } catch (DateTimeParseException e) {
+                System.out.println("Invalid input. Try again.");
+            }
+        }
+        return date;
+    }
+
+    private int createSocialSecurityNumberLastFourDigit() {
+        int idLastFour = -1;
+        while (idLastFour < 0 || idLastFour > 9999) {
+            idLastFour = in.inputInt("ID last four");
+        }
+        return idLastFour;
     }
 
     // Helpers
