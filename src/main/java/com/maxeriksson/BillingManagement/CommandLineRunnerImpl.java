@@ -112,7 +112,7 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
                         serviceRepository.save(service.get());
                     }
                 }
-                case 3 -> deleteService(); // TODO: IMPLEMENT
+                case 3 -> deleteService();
 
                 case 4 -> isHandlingServices = false;
             }
@@ -267,7 +267,25 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
     }
 
     private void deleteService() {
-        System.out.println("WARN: `handleServices()` NOT IMPLEMENTED"); // TODO: IMPLEMENT
+        String serviceId = null;
+        boolean isUniqueId = false;
+        while (!isUniqueId) {
+            serviceId = toInitialUpperCase(in.inputString("Service name"));
+
+            isUniqueId = serviceRepository.existsById(serviceId);
+            if (!isUniqueId) {
+                System.out.println("Service doesn't exists in the registry:\n  " + serviceId);
+                if (!in.inputConfirmation("Try again?\n")) {
+                    return;
+                }
+            }
+        }
+
+        Optional<Service> service = serviceRepository.findById(serviceId);
+        System.out.println("Customer found in Registry:\n  " + service.get());
+        if (in.inputConfirmation("Delete")) {
+            serviceRepository.deleteById(serviceId);
+        }
     }
 
     // Helpers
