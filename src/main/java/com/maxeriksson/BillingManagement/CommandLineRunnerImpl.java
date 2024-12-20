@@ -209,7 +209,7 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         boolean isDateValid = false;
         while (!isDateValid) {
             String dateOfBirthInput =
-                    in.inputString("Birth date (yyyyMMdd)")
+                    in.inputString("Date (yyyyMMdd)")
                             .replace("-", "")
                             .replace("/", "")
                             .replace(" ", "");
