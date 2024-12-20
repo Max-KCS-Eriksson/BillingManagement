@@ -67,8 +67,7 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         boolean isHandlingCustomers = true;
         String[] menuChoices = {
             "Show all Customers in Registry",
-            "Add Customer to Registry",
-            "Update Customer in Registry",
+            "Add Customer to Registry, or Update existing Customer",
             "Delete Customer from Registry",
             "Main Menu"
         };
@@ -84,13 +83,10 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
                         customerRepository.save(customer.get());
                     }
                 }
-                case 3 -> { // TODO: Update Customer in Registry
+                case 3 -> { // TODO: Delete Customer from Registry
                     System.out.println("WARN: NOT IMPLEMENTED"); // TODO: IMPLEMENT
                 }
-                case 4 -> { // TODO: Delete Customer from Registry
-                    System.out.println("WARN: NOT IMPLEMENTED"); // TODO: IMPLEMENT
-                }
-                case 5 -> isHandlingCustomers = false;
+                case 4 -> isHandlingCustomers = false;
             }
         }
     }
