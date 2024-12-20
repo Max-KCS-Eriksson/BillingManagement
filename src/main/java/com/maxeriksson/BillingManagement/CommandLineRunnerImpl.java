@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.format.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /** CommandLineRunnerImpl */
@@ -78,8 +79,10 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
                     System.out.println("WARN: NOT IMPLEMENTED"); // TODO: IMPLEMENT
                 }
                 case 2 -> {
-                    Customer customer = createCustomer();
-                    customerRepository.save(customer);
+                    Optional<Customer> customer = createCustomer();
+                    if (customer.isPresent()) {
+                        customerRepository.save(customer.get());
+                    }
                 }
                 case 3 -> { // TODO: Update Customer in Registry
                     System.out.println("WARN: NOT IMPLEMENTED"); // TODO: IMPLEMENT
@@ -98,8 +101,25 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
 
     // Handle Customers
 
-    private Customer createCustomer() {
-        Optional<Customer> customer;
+    private Optional<Customer> createCustomer() {
+        SocialSecurityNumber socialSecurityNumber;
+        try {
+            socialSecurityNumber = createSocialSecurityNumber().get();
+        } catch (NoSuchElementException e) {
+            return Optional.empty();
+        }
+
+        String firstName = toInitialUpperCase(in.inputString("First name"));
+        String lastName = toInitialUpperCase(in.inputString("Last name"));
+        String address = "";
+        for (String word : in.inputString("Address").split(" ")) {
+            address += toInitialUpperCase(word) + " ";
+        }
+
+        return Optional.of(new Customer(socialSecurityNumber, firstName, lastName, address));
+    }
+
+    private Optional<SocialSecurityNumber> createSocialSecurityNumber() {
         SocialSecurityNumber socialSecurityNumber = null;
 
         boolean uniqueId = false;
@@ -127,30 +147,21 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
             }
 
             socialSecurityNumber = new SocialSecurityNumber(dateOfBirth, idLastFour);
-            customer = customerRepository.findById(socialSecurityNumber);
-            uniqueId = !customer.isPresent();
+            uniqueId = !customerRepository.existsById(socialSecurityNumber);
             if (!uniqueId) {
                 System.out.println(
                         "ID number already exists in the registry:\n  "
-                                + customer
+                                + socialSecurityNumber
                                 + "\nThere might be a typo in the \"Birth date\", or \"ID last"
                                 + " four\"");
                 if (in.inputConfirmation("Update existing customer details?\n")) {
                     break;
                 } else {
-                    return customer.get();
+                    return Optional.empty();
                 }
             }
         }
-
-        String firstName = toInitialUpperCase(in.inputString("First name"));
-        String lastName = toInitialUpperCase(in.inputString("Last name"));
-        String address = "";
-        for (String word : in.inputString("Address").split(" ")) {
-            address += toInitialUpperCase(word) + " ";
-        }
-
-        return new Customer(socialSecurityNumber, firstName, lastName, address);
+        return Optional.of(socialSecurityNumber);
     }
 
     // Helpers
