@@ -6,6 +6,7 @@ import com.maxeriksson.BillingManagement.repository.CustomerRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -73,7 +74,7 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
             printHumanReadableMenuChoiceIndexes(menuChoices);
             switch (pickListIndex(menuChoices)) {
                 case 1 -> {
-                    printAllCustomers();
+                    printAllEntitiesFrom(customerRepository, "All Customers in Registry:");
                 }
                 case 2 -> {
                     Optional<Customer> customer = createCustomer();
@@ -92,14 +93,14 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         System.out.println("WARN: `handleServices()` NOT IMPLEMENTED"); // TODO: IMPLEMENT
     }
 
-    // Handle Customers
-
-    private void printAllCustomers() {
-        System.out.println("All Customers in Registry:");
-        for (Customer customer : customerRepository.findAll()) {
-            System.out.println("  " + customer);
+    private <E, T> void printAllEntitiesFrom(JpaRepository<E, T> repository, String headear) {
+        System.out.println(headear);
+        for (E entity : repository.findAll()) {
+            System.out.println("  " + entity);
         }
     }
+
+    // Handle Customers
 
     private Optional<Customer> createCustomer() {
         SocialSecurityNumber socialSecurityNumber;
