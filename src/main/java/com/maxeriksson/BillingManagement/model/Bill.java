@@ -35,8 +35,6 @@ public class Bill {
     @Column(name = "isPaid")
     private boolean isPaid;
 
-    // TODO: getters, setters, hashCode, equals
-
     public Bill() {} // Required by JPA
 
     public Bill(BillId id, Service service, int hours) {
