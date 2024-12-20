@@ -33,7 +33,7 @@ public class CommandLineInput {
             System.out.print(prompt + " > ");
 
             input = SCANNER.nextLine().trim();
-            if (input.isEmpty()) {
+            if (input.isBlank()) {
                 System.out.println("Invalid input. Try again.");
             }
         }
