@@ -95,7 +95,11 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
 
     private <E, T> void printAllEntitiesFrom(JpaRepository<E, T> repository, String headear) {
         System.out.println(headear);
-        for (E entity : repository.findAll()) {
+        List<E> entities = repository.findAll();
+        if (entities.isEmpty()) {
+            System.out.println("  None in Registry");
+        }
+        for (E entity : entities) {
             System.out.println("  " + entity);
         }
     }
