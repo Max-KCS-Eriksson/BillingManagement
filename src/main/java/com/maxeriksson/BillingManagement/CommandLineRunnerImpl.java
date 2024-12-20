@@ -1,8 +1,10 @@
 package com.maxeriksson.BillingManagement;
 
 import com.maxeriksson.BillingManagement.model.Customer;
+import com.maxeriksson.BillingManagement.model.Service;
 import com.maxeriksson.BillingManagement.model.SocialSecurityNumber;
 import com.maxeriksson.BillingManagement.repository.CustomerRepository;
+import com.maxeriksson.BillingManagement.repository.ServiceRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -23,6 +25,7 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
     private CommandLineInput in = new CommandLineInput();
 
     @Autowired CustomerRepository customerRepository;
+    @Autowired ServiceRepository serviceRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -90,7 +93,30 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
     }
 
     private void handleServices() {
-        System.out.println("WARN: `handleServices()` NOT IMPLEMENTED"); // TODO: IMPLEMENT
+        boolean isHandlingServices = true;
+        String[] menuChoices = {
+            "Show all Services in Registry",
+            "Add Service to Registry, or Update existing Service",
+            "Delete Service from Registry",
+            "Main Menu"
+        };
+        while (isHandlingServices) {
+            printHumanReadableMenuChoiceIndexes(menuChoices);
+            switch (pickListIndex(menuChoices)) {
+                case 1 -> {
+                    printAllEntitiesFrom(serviceRepository, "All Services in Registry:");
+                }
+                case 2 -> {
+                    Optional<Service> service = createService();
+                    if (service.isPresent()) {
+                        serviceRepository.save(service.get());
+                    }
+                }
+                case 3 -> deleteService(); // TODO: IMPLEMENT
+
+                case 4 -> isHandlingServices = false;
+            }
+        }
     }
 
     private <E, T> void printAllEntitiesFrom(JpaRepository<E, T> repository, String headear) {
@@ -203,6 +229,45 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
             idLastFour = in.inputInt("ID last four");
         }
         return idLastFour;
+    }
+
+    // Handle Services
+
+    private Optional<Service> createService() {
+        Service service = new Service();
+
+        String serviceName = null;
+        boolean isUniqueId = false;
+        while (!isUniqueId) {
+            serviceName = toInitialUpperCase(in.inputString("Service name"));
+
+            isUniqueId = !serviceRepository.existsById(serviceName);
+            if (!isUniqueId) {
+                System.out.println("Service already exists in the registry:\n  " + serviceName);
+                if (in.inputConfirmation("Update existing service details?\n")) {
+                    break;
+                } else {
+                    return Optional.empty();
+                }
+            }
+        }
+        service.setName(serviceName);
+
+        boolean isSekPerHourValid = false;
+        while (!isSekPerHourValid) {
+            try {
+                service.setSekPerHour(in.inputInt("Price per houre SEK"));
+                isSekPerHourValid = true;
+            } catch (IllegalArgumentException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        return Optional.of(service);
+    }
+
+    private void deleteService() {
+        System.out.println("WARN: `handleServices()` NOT IMPLEMENTED"); // TODO: IMPLEMENT
     }
 
     // Helpers
