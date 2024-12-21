@@ -46,17 +46,16 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         };
         while (isRunning) {
             printHumanReadableMenuChoiceIndexes(menuChoices);
-            switch (pickListIndex(menuChoices)) {
+            int choice = pickListIndex(menuChoices);
+            System.out.println();
+            switch (choice) {
                 case 1 -> {
-                    System.out.println();
                     handleBilling();
                 }
                 case 2 -> {
-                    System.out.println();
                     handleCustomers();
                 }
                 case 3 -> {
-                    System.out.println();
                     handleServices();
                 }
                 case 4 -> isRunning = false;
@@ -77,7 +76,9 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         };
         while (isHandlingBills) {
             printHumanReadableMenuChoiceIndexes(menuChoices);
-            switch (pickListIndex(menuChoices)) {
+            int choice = pickListIndex(menuChoices);
+            System.out.println();
+            switch (choice) {
                 case 1 -> {
                     printAllEntitiesFrom(billRepository, "All Bills in Registry:");
                 }
@@ -90,6 +91,10 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
                 case 3 -> deleteBill();
 
                 case 4 -> isHandlingBills = false;
+            }
+
+            if (choice == 2 || choice == 3) {
+                System.out.println();
             }
         }
     }
@@ -104,7 +109,9 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         };
         while (isHandlingCustomers) {
             printHumanReadableMenuChoiceIndexes(menuChoices);
-            switch (pickListIndex(menuChoices)) {
+            int choice = pickListIndex(menuChoices);
+            System.out.println();
+            switch (choice) {
                 case 1 -> {
                     printAllEntitiesFrom(customerRepository, "All Customers in Registry:");
                 }
@@ -117,6 +124,10 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
                 case 3 -> deleteCustomer();
 
                 case 4 -> isHandlingCustomers = false;
+            }
+
+            if (choice == 2 || choice == 3) {
+                System.out.println();
             }
         }
     }
@@ -131,7 +142,9 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         };
         while (isHandlingServices) {
             printHumanReadableMenuChoiceIndexes(menuChoices);
-            switch (pickListIndex(menuChoices)) {
+            int choice = pickListIndex(menuChoices);
+            System.out.println();
+            switch (choice) {
                 case 1 -> {
                     printAllEntitiesFrom(serviceRepository, "All Services in Registry:");
                 }
@@ -145,6 +158,10 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
 
                 case 4 -> isHandlingServices = false;
             }
+
+            if (choice == 2 || choice == 3) {
+                System.out.println();
+            }
         }
     }
 
@@ -157,6 +174,7 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         for (E entity : entities) {
             System.out.println("  " + entity);
         }
+        System.out.println();
     }
 
     // Handle Bills
