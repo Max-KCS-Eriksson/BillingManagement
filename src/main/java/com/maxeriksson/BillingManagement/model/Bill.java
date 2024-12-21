@@ -77,6 +77,9 @@ public class Bill {
     }
 
     public void setHours(int hours) {
+        if (hours <= 0) {
+            throw new IllegalArgumentException("Invalid input - must be above 0. Try again.");
+        }
         this.hours = hours;
     }
 
