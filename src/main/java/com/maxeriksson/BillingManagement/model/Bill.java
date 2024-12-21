@@ -4,9 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 
 /** Bill */
@@ -15,14 +13,6 @@ import jakarta.persistence.Table;
 public class Bill {
 
     @EmbeddedId private BillId id;
-
-    @MapsId("customerId")
-    @ManyToOne
-    @JoinColumns({
-        @JoinColumn(name = "customerDateOfBirth", referencedColumnName = "dateOfBirth"),
-        @JoinColumn(name = "customerIdLastFour", referencedColumnName = "idLastFour"),
-    })
-    private Customer customer;
 
     @ManyToOne()
     @JoinColumn(name = "service")
@@ -55,14 +45,6 @@ public class Bill {
         this.id = id;
     }
 
-    public Customer getCustomer() {
-        return customer;
-    }
-
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
-    }
-
     public Service getService() {
         return service;
     }
@@ -93,7 +75,7 @@ public class Bill {
     @Override
     public String toString() {
         return "Bill [customer="
-                + id.getCustomerId()
+                + id.getCustomer().getSocialSecurityNumber()
                 + ", booking="
                 + id.getBookedTime()
                 + ", service="
