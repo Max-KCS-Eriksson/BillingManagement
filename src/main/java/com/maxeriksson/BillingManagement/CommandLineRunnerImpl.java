@@ -120,8 +120,8 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         }
     }
 
-    private <E, T> void printAllEntitiesFrom(JpaRepository<E, T> repository, String headear) {
-        System.out.println(headear);
+    private <E, T> void printAllEntitiesFrom(JpaRepository<E, T> repository, String header) {
+        System.out.println(header);
         List<E> entities = repository.findAll();
         if (entities.isEmpty()) {
             System.out.println("  None in Registry");
@@ -277,7 +277,7 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         boolean isSekPerHourValid = false;
         while (!isSekPerHourValid) {
             try {
-                service.setSekPerHour(in.inputInt("Price per houre SEK"));
+                service.setSekPerHour(in.inputInt("Price per hour SEK"));
                 isSekPerHourValid = true;
             } catch (IllegalArgumentException e) {
                 System.out.println(e.getMessage());
