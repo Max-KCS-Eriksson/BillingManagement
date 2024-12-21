@@ -24,7 +24,6 @@ public class Bill {
     })
     private Customer customer;
 
-    // TODO:
     @ManyToOne()
     @JoinColumn(name = "service")
     private Service service;
