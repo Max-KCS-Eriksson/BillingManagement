@@ -1,8 +1,11 @@
 package com.maxeriksson.BillingManagement;
 
+import com.maxeriksson.BillingManagement.model.Bill;
+import com.maxeriksson.BillingManagement.model.BillId;
 import com.maxeriksson.BillingManagement.model.Customer;
 import com.maxeriksson.BillingManagement.model.Service;
 import com.maxeriksson.BillingManagement.model.SocialSecurityNumber;
+import com.maxeriksson.BillingManagement.repository.BillRepository;
 import com.maxeriksson.BillingManagement.repository.CustomerRepository;
 import com.maxeriksson.BillingManagement.repository.ServiceRepository;
 
@@ -12,6 +15,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.*;
 import java.util.Arrays;
@@ -25,6 +29,7 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
 
     private CommandLineInput in = new CommandLineInput();
 
+    @Autowired BillRepository billRepository;
     @Autowired CustomerRepository customerRepository;
     @Autowired ServiceRepository serviceRepository;
 
@@ -63,7 +68,30 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
     }
 
     private void handleBilling() {
-        System.out.println("WARN: `handleBilling()` NOT IMPLEMENTED"); // TODO: IMPLEMENT
+        boolean isHandlingBills = true;
+        String[] menuChoices = {
+            "Show all Bills in Registry",
+            "Add Bill to Registry, or Update existing Bill",
+            "Delete Bill from Registry",
+            "Main Menu"
+        };
+        while (isHandlingBills) {
+            printHumanReadableMenuChoiceIndexes(menuChoices);
+            switch (pickListIndex(menuChoices)) {
+                case 1 -> {
+                    printAllEntitiesFrom(billRepository, "All Bills in Registry:");
+                }
+                case 2 -> {
+                    Optional<Bill> bill = createBill();
+                    if (bill.isPresent()) {
+                        billRepository.save(bill.get());
+                    }
+                }
+                case 3 -> deleteBill(); // TODO: IMPLEMENT
+
+                case 4 -> isHandlingBills = false;
+            }
+        }
     }
 
     private void handleCustomers() {
@@ -129,6 +157,71 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         for (E entity : entities) {
             System.out.println("  " + entity);
         }
+    }
+
+    // Handle Bills
+
+    private Optional<Bill> createBill() {
+        Bill bill = new Bill();
+
+        BillId id;
+        SocialSecurityNumber customerId;
+        try {
+            System.out.println("Enter Customers details:");
+            customerId = createExistingSocialSecurityNumber().get();
+        } catch (NoSuchElementException e) {
+            return Optional.empty();
+        }
+
+        LocalDateTime bookedTime;
+        System.out.println("Enter booked details:");
+        bookedTime = LocalDateTime.of(createLocalDate(), createLocalTime());
+
+        id = new BillId(customerRepository.findById(customerId).get(), bookedTime);
+        if (billRepository.existsById(id)) {
+            bill = billRepository.findById(id).get();
+            System.out.println("Bill already exists in the registry:\n  " + bill);
+            if (in.inputConfirmation("Mark Bill as Paid?\n")) {
+                bill.setPaid(true);
+                return Optional.of(bill);
+            } else {
+                return Optional.empty();
+            }
+        }
+        bill.setId(id);
+
+        boolean isExistingService = false;
+        while (!isExistingService) {
+            String serviceName = toInitialUpperCase(in.inputString("Service"));
+            try {
+                bill.setService(serviceRepository.findById(serviceName).get());
+                isExistingService = true;
+            } catch (NoSuchElementException e) {
+                System.out.println(
+                        "Service not found in the Registry.\n  "
+                                + serviceName
+                                + " It needs to be registered first.");
+                if (!in.inputConfirmation("Try again?")) {
+                    return Optional.empty();
+                }
+            }
+        }
+
+        boolean isHoursValid = false;
+        while (!isHoursValid) {
+            try {
+                bill.setHours(in.inputInt("Amount hours"));
+                isHoursValid = true;
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        return Optional.of(bill);
+    }
+
+    private void deleteBill() {
+        System.out.println("WARN: `deleteBill()` NOT IMPLEMENTED"); // TODO: IMPLEMENT
     }
 
     // Handle Customers
