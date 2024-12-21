@@ -164,31 +164,12 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
     private Optional<Bill> createBill() {
         Bill bill = new Bill();
 
-        BillId id;
-        SocialSecurityNumber customerId;
+        Optional<BillId> id = createUniqueBillId();
         try {
-            System.out.println("Enter Customers details:");
-            customerId = createExistingSocialSecurityNumber().get();
+            bill.setId(id.get());
         } catch (NoSuchElementException e) {
             return Optional.empty();
         }
-
-        LocalDateTime bookedTime;
-        System.out.println("Enter booked details:");
-        bookedTime = LocalDateTime.of(createLocalDate(), createLocalTime());
-
-        id = new BillId(customerRepository.findById(customerId).get(), bookedTime);
-        if (billRepository.existsById(id)) {
-            bill = billRepository.findById(id).get();
-            System.out.println("Bill already exists in the registry:\n  " + bill);
-            if (in.inputConfirmation("Mark Bill as Paid?\n")) {
-                bill.setPaid(true);
-                return Optional.of(bill);
-            } else {
-                return Optional.empty();
-            }
-        }
-        bill.setId(id);
 
         boolean isExistingService = false;
         while (!isExistingService) {
@@ -222,6 +203,38 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
 
     private void deleteBill() {
         System.out.println("WARN: `deleteBill()` NOT IMPLEMENTED"); // TODO: IMPLEMENT
+    }
+
+    private Optional<BillId> createUniqueBillId() {
+        BillId id = null;
+
+        boolean isUniqueId = false;
+        while (!isUniqueId) {
+            SocialSecurityNumber customerId;
+            try {
+                System.out.println("Enter Customers details:");
+                customerId = createExistingSocialSecurityNumber().get();
+            } catch (NoSuchElementException e) {
+                return Optional.empty();
+            }
+
+            LocalDateTime bookedTime;
+            System.out.println("Enter booked details:");
+            bookedTime = LocalDateTime.of(createLocalDate(), createLocalTime());
+
+            id = new BillId(customerRepository.findById(customerId).get(), bookedTime);
+            isUniqueId = !billRepository.existsById(id);
+            if (!isUniqueId) {
+                System.out.println("Bill already exists in the registry:\n  " + id);
+                if (in.inputConfirmation("Mark Bill as Paid?\n")) {
+                    Bill bill = billRepository.findById(id).get();
+                    bill.setPaid(true);
+                    billRepository.save(bill);
+                }
+                return Optional.empty();
+            }
+        }
+        return Optional.of(id);
     }
 
     // Handle Customers
