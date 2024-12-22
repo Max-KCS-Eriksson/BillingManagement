@@ -241,7 +241,8 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
             SocialSecurityNumber customerId;
             try {
                 System.out.println("Enter Customers details:");
-                customerId = createExistingSocialSecurityNumber().get();
+                boolean isNonExistingAllowed = true;
+                customerId = createExistingSocialSecurityNumber(isNonExistingAllowed).get();
             } catch (NoSuchElementException e) {
                 return Optional.empty();
             }
@@ -303,10 +304,13 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         SocialSecurityNumber socialSecurityNumber;
         try {
             socialSecurityNumber = createUniqueSocialSecurityNumber().get();
+            return createCustomer(socialSecurityNumber);
         } catch (NoSuchElementException e) {
             return Optional.empty();
         }
+    }
 
+    private Optional<Customer> createCustomer(SocialSecurityNumber socialSecurityNumber) {
         String firstName = toInitialUpperCase(in.inputString("First name"));
         String lastName = toInitialUpperCase(in.inputString("Last name"));
         String address = "";
@@ -354,6 +358,10 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
     }
 
     private Optional<SocialSecurityNumber> createExistingSocialSecurityNumber() {
+        return createExistingSocialSecurityNumber(false);
+    }
+
+    private Optional<SocialSecurityNumber> createExistingSocialSecurityNumber(boolean orCreateNew) {
         SocialSecurityNumber socialSecurityNumber = null;
 
         boolean isUniqueId = false;
@@ -366,7 +374,13 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
             if (!isUniqueId) {
                 System.out.println(
                         "ID number doesn't exists in the registry:\n  " + socialSecurityNumber);
-                if (!in.inputConfirmation("Try again?\n")) {
+                if (orCreateNew && in.inputConfirmation("Register Customer?\n")) {
+                    Optional<Customer> customer = createCustomer(socialSecurityNumber);
+                    if (customer.isPresent()) {
+                        customerRepository.save(customer.get());
+                        return Optional.of(customer.get().getSocialSecurityNumber());
+                    }
+                } else if (!in.inputConfirmation("Try again?\n")) {
                     return Optional.empty();
                 }
             }
