@@ -221,6 +221,9 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
 
     private void deleteBill() {
         Optional<BillId> id = createExistingBillId();
+        if (id.isEmpty()) {
+            return;
+        }
         Optional<Bill> bill = billRepository.findById(id.get());
         if (bill.isPresent()) {
             System.out.println("Bill found in Registry:\n  " + bill.get());
@@ -316,6 +319,9 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
 
     private void deleteCustomer() {
         Optional<SocialSecurityNumber> socialSecurityNumber = createExistingSocialSecurityNumber();
+        if (socialSecurityNumber.isEmpty()) {
+            return;
+        }
         Optional<Customer> customer = customerRepository.findById(socialSecurityNumber.get());
         if (customer.isPresent()) {
             System.out.println("Customer found in Registry:\n  " + customer.get());
