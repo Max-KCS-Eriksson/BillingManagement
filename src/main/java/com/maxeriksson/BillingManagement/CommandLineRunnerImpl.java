@@ -466,7 +466,7 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
         }
 
         Optional<Service> service = serviceRepository.findById(serviceId);
-        System.out.println("Customer found in Registry:\n  " + service.get());
+        System.out.println("Service found in Registry:\n  " + service.get());
         if (in.inputConfirmation("Delete")) {
             serviceRepository.deleteById(serviceId);
         }
