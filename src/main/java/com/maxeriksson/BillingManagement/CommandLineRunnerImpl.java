@@ -196,11 +196,15 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
                 bill.setService(serviceRepository.findById(serviceName).get());
                 isExistingService = true;
             } catch (NoSuchElementException e) {
-                System.out.println(
-                        "Service not found in the Registry.\n  "
-                                + serviceName
-                                + " It needs to be registered first.");
-                if (!in.inputConfirmation("Try again?")) {
+                System.out.println("Service not found in the Registry.\n  " + serviceName);
+                if (in.inputConfirmation("Register Service?\n")) {
+                    Optional<Service> service = createService(serviceName);
+                    if (service.isPresent()) {
+                        serviceRepository.save(service.get());
+                        bill.setService(service.get());
+                        isExistingService = true;
+                    }
+                } else if (!in.inputConfirmation("Try again?")) {
                     return Optional.empty();
                 }
             }
@@ -438,8 +442,6 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
     // Handle Services
 
     private Optional<Service> createService() {
-        Service service = new Service();
-
         String serviceName = null;
         boolean isUniqueId = false;
         while (!isUniqueId) {
@@ -455,6 +457,12 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
                 }
             }
         }
+
+        return createService(serviceName);
+    }
+
+    private Optional<Service> createService(String serviceName) {
+        Service service = new Service();
         service.setName(serviceName);
 
         boolean isSekPerHourValid = false;
