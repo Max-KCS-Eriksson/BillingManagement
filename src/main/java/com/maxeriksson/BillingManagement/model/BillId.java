@@ -49,6 +49,15 @@ public class BillId implements Serializable {
     }
 
     @Override
+    public String toString() {
+        return "BillId [customer="
+                + customer.getSocialSecurityNumber()
+                + ", bookedTime="
+                + bookedTime
+                + "]";
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
