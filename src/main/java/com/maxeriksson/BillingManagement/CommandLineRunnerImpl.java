@@ -290,13 +290,10 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
             id = new BillId(customerRepository.findById(customerId).get(), bookedTime);
             isUniqueId = billRepository.existsById(id);
             if (!isUniqueId) {
-                System.out.println("Bill already exists in the registry:\n  " + id);
-                if (in.inputConfirmation("Mark Bill as Paid?\n")) {
-                    Bill bill = billRepository.findById(id).get();
-                    bill.setPaid(true);
-                    billRepository.save(bill);
+                System.out.println("Bill doesn't exists in the registry:\n  " + id);
+                if (!in.inputConfirmation("Try again?\n")) {
+                    return Optional.empty();
                 }
-                return Optional.empty();
             }
         }
         return Optional.of(id);
